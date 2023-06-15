@@ -84,11 +84,11 @@ const Waterfall: FC<WaterfallProps> = (props) => {
   };
 
   const getImgUrl = (node: ReactElement): string => {
-    if (node == null) {
+    if (node === null) {
       return null;
     }
     if (Array.isArray(node)) {
-      const n = node.find((n) => getImgUrl(n) != null);
+      const n = node.find((n) => getImgUrl(n) !== null);
       return n?.props.src;
     }
     if (node.type === "img") {
@@ -158,12 +158,12 @@ const Waterfall: FC<WaterfallProps> = (props) => {
   }, [end]);
 
   const handleScroll: UIEventHandler<HTMLDivElement> = (e) => {
-    onScroll && onScroll(e);
+    onScroll?.(e);
     round();
   };
 
   const cloneElement = (node: ReactElement, index?: number): ReactElement => {
-    const isRoot = index != null && typeof node !== "string";
+    const isRoot = index !== null && typeof node !== "string";
 
     if (isRoot) {
       const key = node.key ?? index;
