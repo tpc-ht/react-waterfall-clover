@@ -110,7 +110,7 @@ export default function App() {
 | prop            | 类型           | 默认 | 必要  | 描述                 |
 | --------------- | -------------- | ---- | ----- | -------------------- |
 | col             | number         | 3    | false | 列数                 |
-| width           | number         | 200  | false | item宽度             |
+| colWidth        | number         | 自适应  | false | 列宽度，默认根据列数自适应宽度 |
 | space           | number /| number[]         | 10   | false | 间隙           |
 | bufferHeight    | number         | 0    | false | 缓冲高度             |
 | concurrent      | number         | 10   | false | 图片加载并发数量     |
