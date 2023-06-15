@@ -7,7 +7,7 @@ import Waterfall from "./components/Waterfall";
 export default function App() {
   const source = useMemo(
     () =>
-      Array(50)
+      Array(10)
         .fill("")
         .map((_, i) =>
           Random.image(

@@ -75,7 +75,6 @@ const Waterfall: FC<WaterfallProps> = (props) => {
 
   const insert = (node: ReactElement, img: ImageData) => {
     const col = getLowestCol();
-
     col.items.push(node);
     col.height += img.width
       ? img.height * (width / img.width) + marginV + extraItemHeight
@@ -163,7 +162,7 @@ const Waterfall: FC<WaterfallProps> = (props) => {
   };
 
   const cloneElement = (node: ReactElement, index?: number): ReactElement => {
-    const isRoot = index !== null && typeof node !== "string";
+    const isRoot = index != null && typeof node !== "string";
 
     if (isRoot) {
       const key = node.key ?? index;

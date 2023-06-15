@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/main.js",
-  "types": "dist/components/Waterfall.d.ts",
+  "types": "dist/Waterfall.d.ts",
   "files": [
     "dist"
   ],
