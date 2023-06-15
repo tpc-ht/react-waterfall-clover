@@ -11,15 +11,51 @@
 - 自定义并发加载数量
 - 缓冲高度
 
-![react-waterfall](https://github.com/tpc-ht/react-waterfall-clover/public/images/waterfall.gif)
+![react-waterfall](https://github.com/tpc-ht/react-waterfall-clover/blob/main/public/images/waterfall.gif)
 
-[线上体验demo](https://codesandbox.io/s/zhong-ji-ban-ben-hvwgk)
 
 
 ## 使用
 
 ```
 yarn add react-waterfall
+```
+```jsx
+import { Random } from "mockjs";
+import React, { useMemo } from "react";
+import "./app.css";
+import Waterfall from "./components/Waterfall";
+
+export default function App() {
+  // 随机图片生成
+  const source = useMemo(
+    () =>
+      Array(50)
+        .fill("")
+        .map((_, i) =>
+          Random.image(
+            `${Math.floor(Math.random() * 500)}x${Math.floor(
+              Math.random() * 500
+            )}`
+          )
+        ),
+    []
+  );
+  return (
+    <>
+      <Waterfall className="container" col={2} width={180}>
+        {source.map((url, i) => (
+          <div>
+            <img src={url} key={i} alt={url} />
+            <div>
+              <span>666666</span>
+            </div>
+          </div>
+        ))}
+      </Waterfall>
+    </>
+  );
+}
 ```
 
 
