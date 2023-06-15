@@ -3,6 +3,7 @@ import React, {
   ReactElement,
   UIEventHandler,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -12,7 +13,7 @@ interface WaterfallProps extends React.HTMLAttributes<HTMLDivElement> {
   // 列数
   col?: number;
   // 单边宽度
-  width?: number;
+  colWidth?: number;
   // 间距
   space?: number | number[];
   //缓冲高度
@@ -30,7 +31,7 @@ const Waterfall: FC<WaterfallProps> = (props) => {
     space = 10,
     bufferHeight = 0,
     col = 2,
-    width = 200,
+    colWidth = 0,
     concurrent = 10,
     extraItemHeight = 0,
     children,
@@ -42,6 +43,7 @@ const Waterfall: FC<WaterfallProps> = (props) => {
   const containerRef = useRef<any>();
   const { current: rootMap } = useRef(new Map());
   const [end, setEnd] = useState(0);
+  const [width, setWidth] = useState(colWidth);
   const { marginH, marginV } = useMemo(
     () =>
       Array.isArray(space)
@@ -156,6 +158,13 @@ const Waterfall: FC<WaterfallProps> = (props) => {
     round();
   }, [end]);
 
+  useLayoutEffect(() => {
+    if (!colWidth) {
+      const { clientWidth } = containerRef.current;
+      setWidth((clientWidth - marginH * (col - 1)) / 2);
+    }
+  }, []);
+
   const handleScroll: UIEventHandler<HTMLDivElement> = (e) => {
     onScroll?.(e);
     round();
@@ -201,7 +210,7 @@ const Waterfall: FC<WaterfallProps> = (props) => {
     <div
       style={{
         display: "flex",
-        overflow: "auto",
+        overflow: "hidden auto",
         gap: marginH,
         ...style,
       }}
@@ -209,7 +218,7 @@ const Waterfall: FC<WaterfallProps> = (props) => {
       ref={containerRef}
       {...e}
     >
-      {Array.isArray(children)
+      {Array.isArray(children) && width
         ? cols.map((col, i) => (
             <div
               key={i}
