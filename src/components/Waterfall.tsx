@@ -1,3 +1,4 @@
+import csn from "classnames";
 import React, {
   FC,
   ReactElement,
@@ -8,42 +9,60 @@ import React, {
   useRef,
   useState,
 } from "react";
+import "./index.css";
 
-interface WaterfallProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface WaterfallProps extends React.HTMLAttributes<HTMLDivElement> {
   // 列数
   col?: number;
+  // 数据
+  dataSource?: any[];
+  // 链接字段名称
+  fieldName?: string;
   // 单边宽度
   colWidth?: number;
   // 间距
   space?: number | number[];
-  //缓冲高度
-  bufferHeight?: number;
-  //图片加载并发数量
-  concurrent?: number;
   //item额外参与计算高度
   extraItemHeight?: number;
   //容器滚动事件
   onScroll?: UIEventHandler<HTMLDivElement>;
+  // 自定义节点
+  renderItem?: (item: any, index: number) => JSX.Element;
 }
 
-const Waterfall: FC<WaterfallProps> = (props) => {
+const getImage = (url: string): Promise<HTMLImageElement> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = url;
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(img);
+  });
+};
+
+const getLowestCol = (cols: any[]) => {
+  const minH = Math.min(...cols.map((c) => c.height));
+  const col = cols.find((c) => c.height === minH);
+  return col;
+};
+
+export const Waterfall: FC<WaterfallProps> = (props) => {
   const {
+    dataSource = [],
+    fieldName = "url",
     space = 10,
-    bufferHeight = 0,
     col = 2,
     colWidth = 0,
-    concurrent = 10,
     extraItemHeight = 0,
     children,
     onScroll,
+    renderItem,
     style,
+    className,
     ...e
   } = props;
-  const loadingRef = useRef(false);
   const containerRef = useRef<any>();
-  const { current: rootMap } = useRef(new Map());
-  const [end, setEnd] = useState(0);
   const [width, setWidth] = useState(colWidth);
+  const [list, setList] = useState([]);
   const { marginH, marginV } = useMemo(
     () =>
       Array.isArray(space)
@@ -58,31 +77,39 @@ const Waterfall: FC<WaterfallProps> = (props) => {
     [space]
   );
 
-  const cols = useMemo(
-    () =>
-      Array(col)
+  useLayoutEffect(() => {
+    if (!colWidth) {
+      const { clientWidth } = containerRef.current;
+      setWidth((clientWidth - marginH * (col - 1)) / 2);
+    }
+  }, []);
+  useEffect(() => {
+    if (col && width) {
+      const cols = Array(col)
         .fill("")
         .map(() => ({
           height: 0,
           items: [],
-        })),
-    [col]
-  );
-
-  const getLowestCol = () => {
-    const minH = Math.min(...cols.map((c) => c.height));
-    const col = cols.find((c) => c.height === minH);
-    return col;
-  };
-
-  const insert = (node: ReactElement, img: ImageData) => {
-    const col = getLowestCol();
-    col.items.push(node);
-    col.height += img.width
-      ? img.height * (width / img.width) + marginV + extraItemHeight
-      : 0;
-    setEnd((n) => n + 1);
-  };
+        }));
+      new Promise((resolve) => {
+        let index = 0;
+        dataSource.forEach(async (item) => {
+          const img = await getImage(item[fieldName]);
+          const col = getLowestCol(cols);
+          col.items.push(item);
+          // 第一个不加间距
+          const space = col.items.length > 1 ? marginV : 0;
+          col.height += img.width
+            ? img.height * (width / img.width) + space + extraItemHeight
+            : 0;
+          index += 1;
+          index == dataSource.length && resolve(cols);
+        });
+      }).then((cols: any) => {
+        setList(cols);
+      });
+    }
+  }, [col, marginV, dataSource, extraItemHeight, width]);
 
   const getImgUrl = (node: ReactElement): string => {
     if (node === null) {
@@ -99,112 +126,8 @@ const Waterfall: FC<WaterfallProps> = (props) => {
     }
   };
 
-  const isOverflow = () => {
-    const minH = Math.min(...cols.map((c) => c.height));
-    const { clientHeight, scrollTop } = containerRef.current;
-    const currentH = clientHeight + bufferHeight + scrollTop;
-    if (minH >= currentH) {
-      return true;
-    } else {
-      return false;
-    }
-  };
-
-  const round = async () => {
-    if (loadingRef.current) {
-      return;
-    }
-    if (!Array.isArray(children)) {
-      return;
-    }
-    if (end === children.length) {
-      return;
-    }
-    if (isOverflow()) {
-      return;
-    }
-
-    loadingRef.current = true;
-
-    const queue = new Array<Promise<any>>();
-    const load = (url: string) => {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.src = url;
-        img.onload = () => resolve(img);
-        img.onerror = () => resolve(img);
-      });
-    };
-
-    children.slice(end, end + concurrent).forEach((node) => {
-      queue.push(load(getImgUrl(node as ReactElement)));
-    });
-
-    for (let j = 0; j < queue.length; j++) {
-      const img = await queue[j];
-      const node = children[end + j];
-      insert(node as ReactElement, img);
-    }
-
-    loadingRef.current = false;
-  };
-
-  useEffect(() => {
-    setEnd(0);
-    rootMap.clear();
-  }, [cols]);
-
-  useEffect(() => {
-    round();
-  }, [end]);
-
-  useLayoutEffect(() => {
-    if (!colWidth) {
-      const { clientWidth } = containerRef.current;
-      setWidth((clientWidth - marginH * (col - 1)) / 2);
-    }
-  }, []);
-
   const handleScroll: UIEventHandler<HTMLDivElement> = (e) => {
     onScroll?.(e);
-    round();
-  };
-
-  const cloneElement = (node: ReactElement, index?: number): ReactElement => {
-    const isRoot = index != null && typeof node !== "string";
-
-    if (isRoot) {
-      const key = node.key ?? index;
-      const cache = rootMap.get(node.key);
-      if (cache) {
-        return cache;
-      } else {
-        const root = React.cloneElement(
-          node,
-          {
-            ...node.props,
-            style: { width, ...node.props.style },
-            key,
-          },
-          React.Children.map(node.props.children, (child) => {
-            return cloneElement(child);
-          })
-        );
-        rootMap.set(root.key, root);
-        return root;
-      }
-    }
-    if (node.type === "img") {
-      return React.cloneElement(node, {
-        style: { objectFit: "contain", width: "100%", ...node.props.style },
-      });
-    }
-    // if (node.props?.children) {
-    //   return React.Children.map(node.props.children, (child) =>
-    //     cloneElement(child)
-    //   );
-    // }
-    return node;
   };
   return (
     <div
@@ -214,12 +137,13 @@ const Waterfall: FC<WaterfallProps> = (props) => {
         gap: marginH,
         ...style,
       }}
+      className={csn(className, "waterfall-img")}
       onScroll={handleScroll}
       ref={containerRef}
       {...e}
     >
-      {Array.isArray(children) && width
-        ? cols.map((col, i) => (
+      {Array.isArray(list) && width
+        ? list.map((col, i) => (
             <div
               key={i}
               style={{
@@ -229,7 +153,15 @@ const Waterfall: FC<WaterfallProps> = (props) => {
                 gap: marginV,
               }}
             >
-              {col.items.map((node, i) => cloneElement(node, i))}
+              {col.items.map((node, i) =>
+                renderItem ? (
+                  renderItem(node, i)
+                ) : (
+                  <div key={`img-${i}`}>
+                    <img key={`img-${i}`} src={node[fieldName]} />
+                  </div>
+                )
+              )}
             </div>
           ))
         : children}
