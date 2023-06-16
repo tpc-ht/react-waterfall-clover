@@ -76,4 +76,6 @@ export default function App() {
 
 ### `colWidth`
 
-单列宽度。不传自适应
+单列宽度不传，默认自动计算宽度
+
+## 注： 请不要在 `Waterfall` 设置 `padding` 和 `margin` 会影响列宽的计算准度

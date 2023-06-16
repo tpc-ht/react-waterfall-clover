@@ -82,9 +82,9 @@ export const Waterfall: FC<WaterfallProps> = (props) => {
       const { clientWidth } = containerRef.current;
       setWidth((clientWidth - marginH * (col - 1)) / 2);
     }
-  }, []);
+  });
   useEffect(() => {
-    if (col && width) {
+    if (col) {
       const cols = Array(col)
         .fill("")
         .map(() => ({
@@ -109,7 +109,7 @@ export const Waterfall: FC<WaterfallProps> = (props) => {
         setList(cols);
       });
     }
-  }, [col, marginV, dataSource, extraItemHeight, width]);
+  }, [col, marginV, dataSource, extraItemHeight]);
 
   const getImgUrl = (node: ReactElement): string => {
     if (node === null) {

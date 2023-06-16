@@ -1,10 +1,11 @@
 // @ts-ignore
 import { Random } from "mockjs";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import "./app.css";
 import Waterfall from "./components/Waterfall";
 
 export default function App() {
+  const [p, setP] = useState(0);
   const source = useMemo(
     () =>
       Array(30)
@@ -21,24 +22,21 @@ export default function App() {
   console.log("source", source);
 
   return (
-    <>
+    <div style={{ padding: p }} className="container">
+      <div onClick={() => setP((e) => (e ? 0 : 8))}>点击</div>
       <Waterfall
-        className="container"
         col={2}
         dataSource={source}
-        colWidth={0}
         onScroll={(e) => {
           console.log("滚动", e);
         }}
         renderItem={(item, index) => (
           <div>
             <img src={item.url} key={index} alt={item} />
-            <div>
-              <span>666666</span>
-            </div>
+            <div>666666666666666666666666666666666666666666666666666666</div>
           </div>
         )}
       />
-    </>
+    </div>
   );
 }
