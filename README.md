@@ -68,7 +68,7 @@ export default function App() {
 | col             | number                                      | 3       | false | 列数                 |
 | fieldName       | string                                      | `url`   | false | 图片字段名             |
 | colWidth        | number                                      | 自适应   | false | 列宽度，默认根据列数自适应宽度 |
-| space           | number /| number[]                          | 10      | false | 间隙                 |
+| space           | number \| number[]                          | 10      | false | 间隙                 |
 | extraItemHeight | number                                      | 0       | false | item额外参与计算高度 |
 | renderItem      | (item: any, index: number) => JSX.Element   | -       | false | 自定义节点 |
 | onScroll        | HTMLDivElement                              | -       | false | 容器滚动事件         |
